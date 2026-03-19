@@ -16,6 +16,7 @@ Uso direto (script):
 Uso como módulo:
     from stroke_prediction.preprocess import load_and_preprocess
     X_train, X_test, y_train, y_test, scaler, features = load_and_preprocess()
+    
 """
 
 from pathlib import Path
