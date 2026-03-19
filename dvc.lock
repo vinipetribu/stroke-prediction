@@ -1,0 +1,30 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: py stroke_prediction/preprocess.py
+    deps:
+    - path: data/raw/healthcare-dataset-stroke-data.csv
+      hash: md5
+      md5: d9a5b44670d96019dedf4e761aded7a2
+      size: 322081
+    - path: stroke_prediction/preprocess.py
+      hash: md5
+      md5: 273c28968eb36390a3ed424bf04215d9
+      size: 12661
+    outs:
+    - path: data/processed/X_test.csv
+      hash: md5
+      md5: 023f03956dfbab5137ffe2f64578b5bc
+      size: 147709
+    - path: data/processed/X_train.csv
+      hash: md5
+      md5: 80888fc898ef43988ffaf2dba714ebee
+      size: 1253832
+    - path: data/processed/y_test.csv
+      hash: md5
+      md5: 68d5d835ebcdf50cd32d8dfa6c2e4382
+      size: 3074
+    - path: data/processed/y_train.csv
+      hash: md5
+      md5: e78d75623e67e1a1129fe0a9feeebdf5
+      size: 23336

@@ -1,0 +1,13 @@
+stages:
+  preprocess:
+    cmd: py stroke_prediction/preprocess.py
+    deps:
+      - data/raw/healthcare-dataset-stroke-data.csv
+      - stroke_prediction/preprocess.py
+    outs:
+      - data/processed/X_train.csv
+      - data/processed/X_test.csv
+      - data/processed/y_train.csv
+      - data/processed/y_test.csv
+ 
+  
