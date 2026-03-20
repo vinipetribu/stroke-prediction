@@ -9,22 +9,30 @@ stages:
       size: 322081
     - path: stroke_prediction/preprocess.py
       hash: md5
-      md5: 273c28968eb36390a3ed424bf04215d9
-      size: 12661
+      md5: b867fe1e28853d2be097ff00e1b4cf6f
+      size: 3124
     outs:
-    - path: data/processed/X_test.csv
+    - path: data/processed/features.csv
       hash: md5
-      md5: 023f03956dfbab5137ffe2f64578b5bc
-      size: 147709
-    - path: data/processed/X_train.csv
+      md5: 873a95027c9ab98ec4dc9005a6cba38f
+      size: 372234
+  train:
+    cmd: py stroke_prediction/train.py
+    deps:
+    - path: data/processed/features.csv
       hash: md5
-      md5: 80888fc898ef43988ffaf2dba714ebee
-      size: 1253832
-    - path: data/processed/y_test.csv
+      md5: 873a95027c9ab98ec4dc9005a6cba38f
+      size: 372234
+    - path: stroke_prediction/train.py
       hash: md5
-      md5: 68d5d835ebcdf50cd32d8dfa6c2e4382
-      size: 3074
-    - path: data/processed/y_train.csv
+      md5: f98f3bda602b685242fffb64cafaf207
+      size: 2454
+    outs:
+    - path: models/logistic_regression.pkl
       hash: md5
-      md5: e78d75623e67e1a1129fe0a9feeebdf5
-      size: 23336
+      md5: 4e6073439bdff53085c57f7ccc3afd4e
+      size: 924845
+    - path: reports/metrics.json
+      hash: md5
+      md5: e0ef46a74f9d2c5bd18cadff8b4947ea
+      size: 714
