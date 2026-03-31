@@ -1,6 +1,6 @@
 stages:
   preprocess:
-    cmd: py stroke_prediction/preprocess.py
+    cmd: python stroke_prediction/preprocess.py
     deps:
       - data/raw/healthcare-dataset-stroke-data.csv
       - stroke_prediction/preprocess.py
@@ -8,12 +8,14 @@ stages:
       - data/processed/features.csv
 
   train:
-    cmd: py stroke_prediction/train.py
+    cmd: python stroke_prediction/train.py
     deps:
       - stroke_prediction/train.py
       - data/processed/features.csv
     outs:
       - models/logistic_regression.pkl
+      - models/random_forest.pkl
+      - models/hist_gradient_boosting.pkl
     metrics:
       - reports/metrics.json:
           cache: false

@@ -9,6 +9,7 @@ pip
 python-dotenv
 ruff
 scikit-learn
+imbalanced-learn
 tqdm
 typer
 -e .

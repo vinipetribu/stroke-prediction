@@ -1,38 +1,46 @@
 schema: '2.0'
 stages:
   preprocess:
-    cmd: py stroke_prediction/preprocess.py
+    cmd: python stroke_prediction/preprocess.py
     deps:
     - path: data/raw/healthcare-dataset-stroke-data.csv
       hash: md5
-      md5: d9a5b44670d96019dedf4e761aded7a2
-      size: 322081
+      md5: 3f25a4c2f2963d969e1a156c08968577
+      size: 316971
     - path: stroke_prediction/preprocess.py
       hash: md5
-      md5: b867fe1e28853d2be097ff00e1b4cf6f
-      size: 3124
+      md5: 9015ca7e1e8293c0be1fca682e487e0e
+      size: 1253
     outs:
     - path: data/processed/features.csv
       hash: md5
-      md5: 873a95027c9ab98ec4dc9005a6cba38f
-      size: 372234
+      md5: 870759b14cbdb9350752b23fab4a78aa
+      size: 964188
   train:
-    cmd: py stroke_prediction/train.py
+    cmd: python stroke_prediction/train.py
     deps:
     - path: data/processed/features.csv
       hash: md5
-      md5: 873a95027c9ab98ec4dc9005a6cba38f
-      size: 372234
+      md5: 870759b14cbdb9350752b23fab4a78aa
+      size: 964188
     - path: stroke_prediction/train.py
       hash: md5
-      md5: f98f3bda602b685242fffb64cafaf207
-      size: 2454
+      md5: f2c8b251c8dd5814f6fb9388028a6437
+      size: 3557
     outs:
+    - path: models/hist_gradient_boosting.pkl
+      hash: md5
+      md5: 57790d82925613302616014bc5a746fb
+      size: 2774149
     - path: models/logistic_regression.pkl
       hash: md5
-      md5: 4e6073439bdff53085c57f7ccc3afd4e
-      size: 924845
+      md5: bd530cf1181f145ccf6294477ca95530
+      size: 1962413
+    - path: models/random_forest.pkl
+      hash: md5
+      md5: 7840032602dbd3acb0982fb9fd28d017
+      size: 13932238
     - path: reports/metrics.json
       hash: md5
-      md5: e0ef46a74f9d2c5bd18cadff8b4947ea
-      size: 714
+      md5: 25d7d884d67386b6a6662e4b767f2ac5
+      size: 2444
