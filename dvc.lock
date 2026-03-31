@@ -5,8 +5,8 @@ stages:
     deps:
     - path: data/raw/healthcare-dataset-stroke-data.csv
       hash: md5
-      md5: 3f25a4c2f2963d969e1a156c08968577
-      size: 316971
+      md5: d9a5b44670d96019dedf4e761aded7a2
+      size: 322081
     - path: stroke_prediction/preprocess.py
       hash: md5
       md5: 9015ca7e1e8293c0be1fca682e487e0e

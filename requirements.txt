@@ -12,4 +12,6 @@ scikit-learn
 imbalanced-learn
 tqdm
 typer
+dvc
+imblearn
 -e .
