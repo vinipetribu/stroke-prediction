@@ -1,6 +1,7 @@
 ipython
 jupyterlab
 loguru
+mlflow
 matplotlib
 notebook
 numpy
