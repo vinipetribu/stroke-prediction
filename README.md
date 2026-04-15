@@ -8,45 +8,76 @@ A short description of the project.
 
 ---
 
-## 🚀 Como configurar o projeto e baixar os dados (Para a Equipe)
+## 🚀 Como rodar o projeto do zero com Makefile
 
-Como estamos usando o **DVC** integrado ao **DagsHub** para versionar nossos dados e modelos separadamente do código, siga os passos abaixo para ter a base de dados completa na sua máquina:
+Como estamos usando o **DVC** integrado ao **DagsHub** para versionar dados e modelos separadamente do código, o fluxo recomendado é usar os comandos do `Makefile`.
 
-### 1. Clone o repositório e instale as dependências
-
-Primeiro, clone o repositório do Git e instale os pacotes necessários (recomenda-se o uso de um ambiente virtual):
+### 1. Clone o repositório
 
 ```bash
 git clone https://github.com/vinipetribu/stroke-prediction.git
 cd stroke-prediction
-pip install -r requirements.txt
 ```
 
-### 2. Configure a autenticação do DagsHub
+### 2. Configure as credenciais do DagsHub
 
-Para que o DVC consiga baixar os arquivos pesados (`.csv`, `.pkl`), você precisa estar autenticado no nosso remote do DagsHub:
+Crie uma conta no [DagsHub](https://dagshub.com) e garanta que você tem acesso ao repositório [`guiga-sa/stroke-prediction`](https://dagshub.com/guiga-sa/stroke-prediction).
 
-1. Crie uma conta no [DagsHub](https://dagshub.com) e garanta que você tem acesso ao repositório `guiga-sa/stroke-prediction`.(https://dagshub.com/guiga-sa/stroke-prediction)
-2. Gere um **token de acesso pessoal** no DagsHub indo em: **Settings → Tokens**.
-3. No terminal do projeto, rode os comandos abaixo substituindo com os seus dados:
+Depois, gere um **token de acesso pessoal** no DagsHub em **Settings → Tokens**.
+
+Na raiz do projeto, crie um arquivo `.env` com suas credenciais:
 
 ```bash
-dvc remote modify origin --local auth basic
-dvc remote modify origin --local user SEU_NOME_DE_USUARIO_DAGSHUB
-dvc remote modify origin --local password SEU_TOKEN_DAGSHUB
+DAGSHUB_USER=seu_usuario
+DAGSHUB_TOKEN=seu_token
 ```
 
-> **Nota:** O uso da flag `--local` garante que suas credenciais fiquem salvas apenas na sua máquina e não sejam enviadas para o Git.
+> **Nota:** O `.env` não deve ser enviado para o Git. Ele é lido automaticamente pelo `Makefile` para configurar o DVC localmente.
 
-### 3. Baixe os dados (DVC Pull)
+### 3. Configure o ambiente do projeto
 
-Com a autenticação pronta, basta rodar o comando abaixo para baixar as bases de dados e os modelos treinados:
+Rode:
 
 ```bash
-dvc pull -r origin
+make setup
 ```
 
-Pronto! As pastas `data/raw/`, `data/processed/` e `models/` serão populadas com os arquivos corretos para a versão atual do código.
+Esse comando executa, em sequência:
+
+- `make create_environment`: cria o ambiente virtual em `.venv`;
+- `make requirements`: instala as dependências do `requirements.txt`;
+- `make dagshub_config`: configura o remote `dagshub` do DVC usando as credenciais do `.env`.
+
+### 4. Baixe os dados e modelos versionados
+
+Com o ambiente configurado, baixe os arquivos controlados pelo DVC:
+
+```bash
+make dvc_pull
+```
+
+As pastas `data/raw/`, `data/processed/` e `models/` serão populadas com os arquivos corretos para a versão atual do código.
+
+### 5. Rode o pipeline
+
+Para reproduzir o pipeline configurado no DVC:
+
+```bash
+make run
+```
+
+Esse comando executa `dvc repro` usando o ambiente virtual criado pelo projeto.
+
+### Comandos úteis
+
+```bash
+make help       # Lista os comandos disponíveis
+make data       # Executa o script stroke_prediction/dataset.py
+make lint       # Verifica formatação e lint com ruff
+make format     # Corrige lint e formata o código com ruff
+make dvc_push   # Envia dados/modelos versionados para o remote DVC
+make clean      # Remove arquivos temporários do Python
+```
 
 ---
 
@@ -55,19 +86,22 @@ Pronto! As pastas `data/raw/`, `data/processed/` e `models/` serão populadas co
 Se você fizer alguma alteração no código de treino ou pré-processamento, pode reproduzir o pipeline inteiro com:
 
 ```bash
-dvc repro
+make run
 ```
 
-O DVC identificará automaticamente quais etapas foram afetadas pela sua mudança e executará apenas o necessário. Para forçar a re-execução de todas as etapas independentemente de mudanças, use:
+O comando executa `dvc repro`. O DVC identificará automaticamente quais etapas foram afetadas pela sua mudança e executará apenas o necessário.
+
+Para forçar a re-execução de todas as etapas independentemente de mudanças, ative o ambiente virtual e rode o DVC diretamente:
 
 ```bash
+source .venv/bin/activate
 dvc repro --force
 ```
 
 Após reproduzir, não se esqueça de versionar os novos resultados:
 
 ```bash
-dvc push -r origin
+make dvc_push
 git add dvc.lock
 git commit -m "repro: atualiza pipeline com novas alterações"
 git push
@@ -79,7 +113,7 @@ git push
 
 ```
 ├── LICENSE            <- Licença open-source do projeto
-├── Makefile           <- Comandos úteis como `make data` ou `make train`
+├── Makefile           <- Comandos úteis como `make setup`, `make run` ou `make data`
 ├── README.md          <- README principal para os desenvolvedores
 ├── data
 │   ├── external       <- Dados de fontes externas

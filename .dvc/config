@@ -1,4 +1,6 @@
 [core]
-    remote = origin
+    remote = dagshub
 ['remote "origin"']
+    url = https://dagshub.com/guiga-sa/stroke-prediction.dvc
+['remote "dagshub"']
     url = https://dagshub.com/guiga-sa/stroke-prediction.dvc
