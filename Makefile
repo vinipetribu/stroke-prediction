@@ -3,65 +3,103 @@
 #################################################################################
 
 PROJECT_NAME = stroke-prediction
-PYTHON_VERSION = 3.14
-PYTHON_INTERPRETER = python
+PYTHON_VERSION = 3.11
+PYTHON_INTERPRETER = python3
+VENV = .venv
+DAGSHUB_REPO_OWNER = guiga-sa
+DAGSHUB_REPO_NAME = stroke-prediction
+DAGSHUB_URL = https://dagshub.com/$(DAGSHUB_REPO_OWNER)/$(DAGSHUB_REPO_NAME)
+
+ifeq ($(OS),Windows_NT)
+	VENV_BIN = $(VENV)/Scripts
+else
+	VENV_BIN = $(VENV)/bin
+endif
+
+-include .env
+export
 
 #################################################################################
-# COMMANDS                                                                      #
+# SETUP                                                                         #
 #################################################################################
 
+.PHONY: create_environment
+create_environment:
+	$(PYTHON_INTERPRETER) -m venv $(VENV)
+	@echo ">>> Ambiente virtual criado em .venv"
+	@echo ">>> Ative com: source .venv/bin/activate  (Linux/Mac)"
+	@echo "               .venv\\Scripts\\activate     (Windows)"
 
-## Install Python dependencies
 .PHONY: requirements
 requirements:
-	$(PYTHON_INTERPRETER) -m pip install -U pip
-	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
-	
+	$(VENV_BIN)/pip install -U pip
+	$(VENV_BIN)/pip install -r requirements.txt
+	@echo ">>> Dependências instaladas."
 
+.PHONY: dagshub_config
+dagshub_config:
+	@if [ -z "$(DAGSHUB_TOKEN)" ]; then \
+		echo "ERRO: DAGSHUB_TOKEN não definido no .env"; exit 1; \
+	fi
+	$(VENV_BIN)/dvc remote add -d -f dagshub $(DAGSHUB_URL).dvc
+	$(VENV_BIN)/dvc remote modify dagshub --local auth basic
+	$(VENV_BIN)/dvc remote modify dagshub --local user $(DAGSHUB_USER)
+	$(VENV_BIN)/dvc remote modify dagshub --local password $(DAGSHUB_TOKEN)
+	@echo ">>> DVC configurado com DagsHub."
 
+.PHONY: setup
+setup: create_environment requirements dagshub_config
+	@echo ""
+	@echo "========================================="
+	@echo " Projeto configurado com sucesso!"
+	@echo " Certifique-se de preencher o .env com:"
+	@echo "   DAGSHUB_USER=seu_usuario"
+	@echo "   DAGSHUB_TOKEN=seu_token"
+	@echo "========================================="
 
-## Delete all compiled Python files
+#################################################################################
+# DVC                                                                           #
+#################################################################################
+
+.PHONY: dvc_pull
+dvc_pull:
+	$(VENV_BIN)/dvc pull
+
+.PHONY: dvc_push
+dvc_push:
+	$(VENV_BIN)/dvc push
+
+.PHONY: run
+run:
+	$(VENV_BIN)/dvc repro
+
+#################################################################################
+# PROJETO                                                                       #
+#################################################################################
+
+.PHONY: data
+data:
+	$(VENV_BIN)/python stroke_prediction/dataset.py
+
+#################################################################################
+# QUALIDADE DE CÓDIGO                                                           #
+#################################################################################
+
+.PHONY: lint
+lint:
+	$(VENV_BIN)/ruff format --check
+	$(VENV_BIN)/ruff check
+
+.PHONY: format
+format:
+	$(VENV_BIN)/ruff check --fix
+	$(VENV_BIN)/ruff format
+
 .PHONY: clean
 clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
-
-
-## Lint using ruff (use `make format` to do formatting)
-.PHONY: lint
-lint:
-	ruff format --check
-	ruff check
-
-## Format source code with ruff
-.PHONY: format
-format:
-	ruff check --fix
-	ruff format
-
-
-
-
-
-## Set up Python interpreter environment
-.PHONY: create_environment
-create_environment:
-	@bash -c "if [ ! -z `which virtualenvwrapper.sh` ]; then source `which virtualenvwrapper.sh`; mkvirtualenv $(PROJECT_NAME) --python=$(PYTHON_INTERPRETER); else mkvirtualenv.bat $(PROJECT_NAME) --python=$(PYTHON_INTERPRETER); fi"
-	@echo ">>> New virtualenv created. Activate with:\nworkon $(PROJECT_NAME)"
-	
-
-
-
-#################################################################################
-# PROJECT RULES                                                                 #
-#################################################################################
-
-
-## Make dataset
-.PHONY: data
-data: requirements
-	$(PYTHON_INTERPRETER) stroke_prediction/dataset.py
-
+	@echo ">>> Arquivos temporários removidos."
 
 #################################################################################
 # Self Documenting Commands                                                     #
