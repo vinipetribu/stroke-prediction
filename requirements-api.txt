@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+mlflow==3.11.1
+pandas
+scikit-learn
+imbalanced-learn
+joblib
+python-dotenv
+loguru
+tqdm
+-e .

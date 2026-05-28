@@ -2,10 +2,10 @@ import json
 import os
 from pathlib import Path
 
-import joblib
-import pandas as pd
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline
+import joblib
+import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.impute import KNNImputer
 from sklearn.linear_model import LogisticRegression
@@ -44,9 +44,7 @@ def build_pipeline(name: str) -> Pipeline:
                 ("smote", SMOTE(random_state=42, k_neighbors=5)),
                 (
                     "classifier",
-                    RandomForestClassifier(
-                        random_state=42, n_estimators=200, n_jobs=-1
-                    ),
+                    RandomForestClassifier(random_state=42, n_estimators=200, n_jobs=-1),
                 ),
             ]
         )
@@ -111,6 +109,61 @@ def _setup_mlflow() -> bool:
         return False
 
 
+def _select_champion(all_metrics: dict, model_uris: dict[str, str] | None = None) -> dict:
+    champion_name, champion_report = max(
+        all_metrics.items(),
+        key=lambda item: item[1].get("1", {}).get("recall", 0.0),
+    )
+    positive_class_metrics = champion_report.get("1", {})
+    champion = {
+        "model_name": champion_name,
+        "model_path": f"models/{champion_name}.pkl",
+        "selection_metric": "recall for positive class (stroke=1)",
+        "selection_metric_value": positive_class_metrics.get("recall", 0.0),
+        "reason": (
+            "Chosen as champion because it has the best recall for the minority positive "
+            "class among the trained models, which is more appropriate for stroke screening "
+            "than raw accuracy on this imbalanced dataset."
+        ),
+        "compared_models": {
+            model_name: {
+                "recall_stroke_1": report.get("1", {}).get("recall", 0.0),
+                "precision_stroke_1": report.get("1", {}).get("precision", 0.0),
+                "accuracy": report.get("accuracy", 0.0),
+            }
+            for model_name, report in all_metrics.items()
+        },
+    }
+    if model_uris and champion_name in model_uris:
+        champion["mlflow_model_uri"] = model_uris[champion_name]
+    return champion
+
+
+def _register_champion_model(champion: dict) -> dict:
+    if mlflow is None or "mlflow_model_uri" not in champion:
+        return champion
+
+    registered_model_name = os.environ.get(
+        "MLFLOW_REGISTERED_MODEL_NAME", "stroke-prediction-champion"
+    )
+    try:
+        result = mlflow.register_model(champion["mlflow_model_uri"], registered_model_name)
+        client = mlflow.tracking.MlflowClient()
+        client.set_registered_model_alias(registered_model_name, "champion", result.version)
+
+        champion["mlflow_registered_model_name"] = registered_model_name
+        champion["mlflow_registered_model_version"] = result.version
+        champion["mlflow_model_uri"] = f"models:/{registered_model_name}@champion"
+        print(f"Champion registrado no MLflow Model Registry: {champion['mlflow_model_uri']}")
+    except Exception as e:
+        print(
+            "[MLflow] Nao foi possivel registrar o champion no Model Registry "
+            f"({e}). Usando URI do run."
+        )
+
+    return champion
+
+
 def train_models():
     print("[1/3] Carregando features e dividindo dados...")
     df = pd.read_csv(FEATURES_PATH)
@@ -124,6 +177,7 @@ def train_models():
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
     all_metrics: dict = {}
+    model_uris: dict[str, str] = {}
     use_mlflow = _setup_mlflow()
 
     specs = [
@@ -153,6 +207,7 @@ def train_models():
                 all_metrics[key] = report_dict
                 _log_classification_metrics(report_dict)
                 mlflow.sklearn.log_model(pipeline, artifact_path="model")
+                model_uris[key] = f"runs:/{mlflow.active_run().info.run_id}/model"
         else:
             pipeline.fit(X_train, y_train)
             y_pred = pipeline.predict(X_test)
@@ -168,6 +223,12 @@ def train_models():
     with open(metrics_path, "w") as f:
         json.dump(all_metrics, f, indent=4)
     print(f"\n[3/3] Métricas (todos os modelos) em: {metrics_path}")
+
+    champion = _register_champion_model(_select_champion(all_metrics, model_uris))
+    champion_path = REPORTS_DIR / "champion.json"
+    with open(champion_path, "w") as f:
+        json.dump(champion, f, indent=4)
+    print(f"Champion selecionado: {champion['model_name']} ({champion_path})")
 
 
 if __name__ == "__main__":

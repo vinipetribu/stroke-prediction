@@ -1,0 +1,10 @@
+.git
+.dvc/cache
+.venv
+__pycache__
+*.pyc
+.env
+.DS_Store
+notebooks
+data
+mlartifacts

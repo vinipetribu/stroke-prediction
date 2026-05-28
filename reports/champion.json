@@ -1,0 +1,27 @@
+{
+    "model_name": "logistic_regression",
+    "model_path": "models/logistic_regression.pkl",
+    "selection_metric": "recall for positive class (stroke=1)",
+    "selection_metric_value": 0.76,
+    "reason": "Chosen as champion because it has the best recall for the minority positive class among the trained models, which is more appropriate for stroke screening than raw accuracy on this imbalanced dataset.",
+    "compared_models": {
+        "logistic_regression": {
+            "recall_stroke_1": 0.76,
+            "precision_stroke_1": 0.1314878892733564,
+            "accuracy": 0.7426614481409002
+        },
+        "random_forest": {
+            "recall_stroke_1": 0.0,
+            "precision_stroke_1": 0.0,
+            "accuracy": 0.9442270058708415
+        },
+        "hist_gradient_boosting": {
+            "recall_stroke_1": 0.1,
+            "precision_stroke_1": 0.38461538461538464,
+            "accuracy": 0.9481409001956947
+        }
+    },
+    "mlflow_model_uri": "models:/stroke-prediction-champion@champion",
+    "mlflow_registered_model_name": "stroke-prediction-champion",
+    "mlflow_registered_model_version": "2"
+}

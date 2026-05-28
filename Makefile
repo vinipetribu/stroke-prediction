@@ -73,6 +73,29 @@ dvc_push:
 run:
 	$(VENV_BIN)/dvc repro
 
+.PHONY: api
+api:
+	MLFLOW_TRACKING_URI=http://127.0.0.1:5002 MLFLOW_EXPERIMENT_NAME=stroke-prediction-compose $(VENV_BIN)/uvicorn stroke_prediction.api:app --host 0.0.0.0 --port 8000 --reload
+
+.PHONY: experiments
+experiments:
+	PATH=$(VENV_BIN):$$PATH MLFLOW_TRACKING_URI=http://127.0.0.1:5002 MLFLOW_EXPERIMENT_NAME=stroke-prediction-compose $(VENV_BIN)/dvc repro --force train
+
+.PHONY: activity
+activity:
+	docker compose up --build -d mlflow
+	sleep 5
+	PATH=$(VENV_BIN):$$PATH MLFLOW_TRACKING_URI=http://127.0.0.1:5002 MLFLOW_EXPERIMENT_NAME=stroke-prediction-compose $(VENV_BIN)/dvc repro --force train
+	docker compose up --build -d api
+
+.PHONY: compose_up
+compose_up:
+	docker compose up --build
+
+.PHONY: compose_down
+compose_down:
+	docker compose down
+
 #################################################################################
 # PROJETO                                                                       #
 #################################################################################

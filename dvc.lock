@@ -9,8 +9,8 @@ stages:
       size: 322081
     - path: stroke_prediction/preprocess.py
       hash: md5
-      md5: 9015ca7e1e8293c0be1fca682e487e0e
-      size: 1253
+      md5: 810490beb81afe6b7433a95a20c76a0b
+      size: 1162
     outs:
     - path: data/processed/features.csv
       hash: md5
@@ -25,8 +25,8 @@ stages:
       size: 964188
     - path: stroke_prediction/train.py
       hash: md5
-      md5: c6383da18053d2bffc5bc979a3788ab2
-      size: 6281
+      md5: d2b357a5f210feec63df7df8aaffe3d9
+      size: 8981
     outs:
     - path: models/hist_gradient_boosting.pkl
       hash: md5
@@ -34,12 +34,16 @@ stages:
       size: 2774149
     - path: models/logistic_regression.pkl
       hash: md5
-      md5: b168c4dd425e12a51c951621770339a7
+      md5: fcda4dd6fd38acac04bb663ac08d98f1
       size: 1962413
     - path: models/random_forest.pkl
       hash: md5
       md5: 7840032602dbd3acb0982fb9fd28d017
       size: 13932238
+    - path: reports/champion.json
+      hash: md5
+      md5: e77f8eb7df512e74276600bcb6ee38f9
+      size: 1140
     - path: reports/metrics.json
       hash: md5
       md5: 25d7d884d67386b6a6662e4b767f2ac5

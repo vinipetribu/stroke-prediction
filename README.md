@@ -73,11 +73,78 @@ Esse comando executa `dvc repro` usando o ambiente virtual criado pelo projeto.
 ```bash
 make help       # Lista os comandos disponíveis
 make data       # Executa o script stroke_prediction/dataset.py
+make api        # Sobe a API FastAPI localmente em http://localhost:8000
+make experiments # Roda os experimentos e registra modelos no MLflow local
+make activity   # Sobe MLflow, roda experimentos e sobe a API via Docker
+make compose_up # Sobe MLflow + API FastAPI com Docker Compose
 make lint       # Verifica formatação e lint com ruff
 make format     # Corrige lint e formata o código com ruff
 make dvc_push   # Envia dados/modelos versionados para o remote DVC
 make clean      # Remove arquivos temporários do Python
 ```
+
+---
+
+## 🧪 MLflow, FastAPI e modelo champion
+
+Esta entrega adiciona dois serviços no `docker-compose.yml`:
+
+- `mlflow`: servidor MLflow em `http://localhost:5002`, com banco SQLite e artefatos persistidos no volume Docker `mlflow-data`.
+- `api`: API FastAPI em `http://localhost:8000`, carregando o modelo champion pelo MLflow.
+
+Suba a stack:
+
+```bash
+make compose_up
+```
+
+Em outro terminal, rode os experimentos para registrar os modelos no MLflow, marcar o alias `champion` no Model Registry e atualizar `reports/champion.json` com a URI do champion:
+
+```bash
+make experiments
+```
+
+Para fazer o fluxo da atividade em um único comando:
+
+```bash
+make activity
+```
+
+Endpoints principais:
+
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8000/model-info
+```
+
+Exemplo de predição:
+
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "gender": "Male",
+    "age": 67,
+    "hypertension": 0,
+    "heart_disease": 1,
+    "ever_married": "Yes",
+    "work_type": "Private",
+    "Residence_type": "Urban",
+    "avg_glucose_level": 228.69,
+    "bmi": 36.6,
+    "smoking_status": "formerly smoked"
+  }'
+```
+
+### Champion escolhido
+
+O modelo champion é `logistic_regression`. A API não carrega esse modelo pela pasta local `models/`; ela usa a URI `mlflow_model_uri` registrada em `reports/champion.json`. Quando os experimentos rodam com MLflow ativo, essa URI fica no formato `models:/stroke-prediction-champion@champion`.
+
+A decisão está registrada em `reports/champion.json`. Apesar de `hist_gradient_boosting` ter a maior acurácia (`0.9481`), o dataset é desbalanceado e a atividade envolve triagem de AVC. Por isso, o critério escolhido foi o recall da classe positiva (`stroke=1`):
+
+- `logistic_regression`: recall `0.76`
+- `hist_gradient_boosting`: recall `0.10`
+- `random_forest`: recall `0.00`
 
 ---
 

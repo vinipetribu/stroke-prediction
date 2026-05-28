@@ -19,3 +19,5 @@ stages:
     metrics:
       - reports/metrics.json:
           cache: false
+      - reports/champion.json:
+          cache: false
